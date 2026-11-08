@@ -1,0 +1,8 @@
+{
+  "fixtureId": "catalog-boundary",
+  "kind": "catalog",
+  "walks": [
+    {"id": "exact-hour", "title": "Exact hour", "description": "A walk timed to one hour.", "durationMinutes": 60, "distanceMetres": 4000, "terrain": "woodland", "availability": "open", "artKey": "pine"},
+    {"id": "over-hour", "title": "Over hour", "description": "One minute beyond the hour budget.", "durationMinutes": 61, "distanceMetres": 4100, "terrain": "ridge", "availability": "open", "artKey": "ridge"}
+  ]
+}

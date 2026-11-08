@@ -1,0 +1,27 @@
+{
+  "fixtureId": "catalog-invalid-blank-title",
+  "kind": "catalog",
+  "walks": [
+    {
+      "id": "new-valid",
+      "title": "New valid",
+      "description": "This valid row must not leak from a rejected snapshot.",
+      "durationMinutes": 20,
+      "distanceMetres": 1000,
+      "terrain": "garden",
+      "availability": "open",
+      "artKey": "glasshouse"
+    },
+    {
+      "id": "bad-row",
+      "title": "  ",
+      "description": "This valid row must not leak from a rejected snapshot.",
+      "durationMinutes": 20,
+      "distanceMetres": 1000,
+      "terrain": "garden",
+      "availability": "open",
+      "artKey": "glasshouse"
+    }
+  ],
+  "invalidBecause": "blank-title"
+}

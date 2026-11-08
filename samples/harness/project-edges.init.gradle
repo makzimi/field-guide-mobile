@@ -1,0 +1,18 @@
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+gradle.projectsEvaluated {
+    rootProject.tasks.register("printDirectProjectEdges") {
+        doLast {
+            rootProject.subprojects.sort { it.path }.each { sampleProject ->
+                def configuration = sampleProject.configurations.findByName("debugRuntimeClasspath") ?:
+                    sampleProject.configurations.getByName("runtimeClasspath")
+                def edges = configuration.incoming.resolutionResult.root.dependencies
+                    .findAll { it instanceof ResolvedDependencyResult && it.selected.id instanceof ProjectComponentIdentifier }
+                    .collect { it.selected.id.projectPath }
+                    .sort()
+                println("${sampleProject.path} [${configuration.name}] -> ${edges.isEmpty() ? '(none)' : edges.join(', ')}")
+            }
+        }
+    }
+}

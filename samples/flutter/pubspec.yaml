@@ -1,0 +1,22 @@
+name: field_guide_workspace
+publish_to: none
+environment:
+  sdk: '>=3.13.5 <4.0.0'
+workspace:
+  - apps/field_guide
+  - packages/catalog_api
+  - packages/catalog_impl
+  - packages/feature_catalog
+dev_dependencies:
+  flutter:
+    sdk: flutter
+  field_guide: ^0.1.0
+  flutter_test:
+    sdk: flutter
+  catalog_api: ^0.1.0
+  catalog_impl: ^0.1.0
+  feature_catalog: ^0.1.0
+  flutter_lints: 6.0.0
+
+flutter:
+  uses-material-design: true

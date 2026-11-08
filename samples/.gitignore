@@ -1,0 +1,19 @@
+# Toolchains and generated build state are local setup, not audience source.
+.toolchains/
+android/.gradle/
+android/.gradle-user-home/
+android/.kotlin/
+android/**/build/
+android/local.properties
+flutter/.dart_tool/
+flutter/.dart-tool/
+flutter/.analyzer-state/
+flutter/.config/
+flutter/.pub-cache/
+flutter/.gradle-cache/
+flutter/.gradle-user-home/
+flutter/**/.dart_tool/
+flutter/**/build/
+flutter/**/.flutter-plugins-dependencies
+flutter/**/android/.gradle/
+flutter/**/android/local.properties

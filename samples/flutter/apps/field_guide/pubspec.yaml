@@ -1,0 +1,27 @@
+name: field_guide
+description: Original Field Guide Android app and composition root.
+version: 0.1.0+1
+publish_to: none
+resolution: workspace
+environment:
+  sdk: '>=3.13.5 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  catalog_api: ^0.1.0
+  catalog_impl: ^0.1.0
+  feature_catalog: ^0.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/generated/catalog-valid.json
+    - assets/generated/catalog-changed.json
+    - assets/generated/catalog-boundary.json
+    - assets/generated/catalog-long-text.json
+    - assets/generated/catalog-invalid-duplicate.json
+    - assets/generated/catalog-invalid-enum.json

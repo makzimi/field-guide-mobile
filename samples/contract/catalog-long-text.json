@@ -1,0 +1,7 @@
+{
+  "fixtureId": "catalog-long-text",
+  "kind": "catalog",
+  "walks": [
+    {"id": "long-title", "title": "The very long woodland and riverside walk past the old glasshouse and through the northern gardens", "description": "A deliberately long route description for large text layout checks. The route passes pines, water, gardens and a quiet ridge before returning to the start.", "durationMinutes": 60, "distanceMetres": 3200, "terrain": "woodland", "availability": "open", "artKey": "pine"}
+  ]
+}

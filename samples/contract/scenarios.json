@@ -1,0 +1,1715 @@
+{
+  "schemaVersion": 1,
+  "clockUnit": "monotonic-ms",
+  "ttlMs": 300000,
+  "defaultBudgetMinutes": 60,
+  "scenarioIds": [
+    "CAT-01",
+    "CAT-02",
+    "CAT-03",
+    "CAT-04",
+    "CAT-05",
+    "CAT-06",
+    "CAT-07",
+    "CAT-08",
+    "SAVE-01",
+    "SAVE-02",
+    "SAVE-03",
+    "SAVE-04",
+    "SAVE-05",
+    "SAVE-06",
+    "NAV-01",
+    "CLOCK-01",
+    "VIEW-01"
+  ],
+  "scenarios": [
+    {
+      "id": "CAT-01",
+      "purpose": "Initial valid load and default ordered list",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": null,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "start",
+          "action": "openList",
+          "expect": {
+            "screen": "list",
+            "catalogState": "loading",
+            "listIds": [],
+            "saveEnabled": false
+          }
+        },
+        {
+          "id": "finish",
+          "action": "completeCatalog",
+          "fixture": "catalog-valid",
+          "expect": {
+            "screen": "list",
+            "catalogState": "content",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "closedIds": [
+              "glasshouse-loop"
+            ],
+            "savedCount": 0,
+            "fetchedAtMs": 1000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "CAT-02",
+      "purpose": "Inclusive duration boundary",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-boundary",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "sixty",
+          "action": "openList",
+          "expect": {
+            "listIds": [
+              "exact-hour"
+            ],
+            "includedId": "exact-hour",
+            "excludedId": "over-hour"
+          }
+        },
+        {
+          "id": "ninety",
+          "action": "setBudget",
+          "minutes": 90,
+          "expect": {
+            "listIds": [
+              "exact-hour",
+              "over-hour"
+            ]
+          }
+        },
+        {
+          "id": "validCatalog",
+          "action": "resetHarness",
+          "initial": {
+            "clockMs": 1000000,
+            "catalogFixture": "catalog-valid",
+            "fetchedAtMs": 1000000,
+            "savedIds": [],
+            "storage": "loaded",
+            "budgetMinutes": 60,
+            "query": ""
+          },
+          "expect": {
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "thirty",
+          "action": "setBudget",
+          "minutes": 30,
+          "expect": {
+            "listIds": [
+              "pine-loop"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CAT-03",
+      "purpose": "ASCII case and whitespace normalization over title only",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "spaced",
+          "action": "setQuery",
+          "text": "  CANAL  ",
+          "expect": {
+            "normalizedQuery": "canal",
+            "listIds": [
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "lower",
+          "action": "setQuery",
+          "text": "canal",
+          "expect": {
+            "normalizedQuery": "canal",
+            "listIds": [
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "internal",
+          "action": "setQuery",
+          "text": "  PINE   LOOP ",
+          "expect": {
+            "normalizedQuery": "pine loop",
+            "listIds": [
+              "pine-loop"
+            ]
+          }
+        },
+        {
+          "id": "descriptionOnly",
+          "action": "setQuery",
+          "text": "gentle",
+          "expect": {
+            "normalizedQuery": "gentle",
+            "listIds": []
+          }
+        },
+        {
+          "id": "whitespace",
+          "action": "setQuery",
+          "text": " \t ",
+          "expect": {
+            "normalizedQuery": "",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "ties",
+          "action": "resetHarness",
+          "initial": {
+            "clockMs": 1000000,
+            "catalogFixture": "catalog-sort-ties",
+            "fetchedAtMs": 1000000,
+            "savedIds": [],
+            "storage": "loaded",
+            "budgetMinutes": 60,
+            "query": ""
+          },
+          "expect": {
+            "listIds": [
+              "short",
+              "later",
+              "alpha",
+              "zeta"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CAT-04",
+      "purpose": "Empty filtered list and reset both filters",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "empty",
+          "action": "setBudget",
+          "minutes": 15,
+          "expect": {
+            "catalogState": "empty",
+            "listIds": [],
+            "clearFiltersEnabled": true
+          }
+        },
+        {
+          "id": "query",
+          "action": "setQuery",
+          "text": "canal",
+          "expect": {
+            "catalogState": "empty",
+            "query": "canal",
+            "budgetMinutes": 15,
+            "listIds": []
+          }
+        },
+        {
+          "id": "clear",
+          "action": "clearFilters",
+          "expect": {
+            "catalogState": "content",
+            "query": "",
+            "budgetMinutes": 60,
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CAT-05",
+      "purpose": "Initial source error and retry",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": null,
+        "savedIds": [
+          "canal-gardens"
+        ],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "start",
+          "action": "openList",
+          "expect": {
+            "catalogState": "loading",
+            "listIds": []
+          }
+        },
+        {
+          "id": "failure",
+          "action": "failCatalog",
+          "error": "source-unavailable",
+          "expect": {
+            "catalogState": "full-error",
+            "listIds": [],
+            "retryCatalogEnabled": true,
+            "savedIds": [
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "retry",
+          "action": "retryCatalog",
+          "expect": {
+            "catalogState": "loading"
+          }
+        },
+        {
+          "id": "success",
+          "action": "completeCatalog",
+          "fixture": "catalog-valid",
+          "expect": {
+            "catalogState": "content",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "fetchedAtMs": 1000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "CAT-06",
+      "purpose": "Expired cache retained across failed refresh",
+      "initial": {
+        "clockMs": 1300000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "return",
+          "action": "openList",
+          "expect": {
+            "catalogState": "refreshing-stale",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "staleWarning": true,
+            "fetchedAtMs": 1000000
+          }
+        },
+        {
+          "id": "returnAgain",
+          "action": "openList",
+          "expect": {
+            "catalogState": "refreshing-stale",
+            "sourceRequestCount": 1,
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "failure",
+          "action": "failCatalog",
+          "error": "source-unavailable",
+          "expect": {
+            "catalogState": "stale-error",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "staleWarning": true,
+            "retryCatalogEnabled": true,
+            "fetchedAtMs": 1000000
+          }
+        },
+        {
+          "id": "detail",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "screen": "detail",
+            "routeId": "canal-gardens",
+            "addEnabled": false,
+            "disabledReason": "stale"
+          }
+        },
+        {
+          "id": "freshReset",
+          "action": "resetHarness",
+          "initial": {
+            "clockMs": 1000000,
+            "catalogFixture": "catalog-valid",
+            "fetchedAtMs": 1000000,
+            "savedIds": [],
+            "storage": "loaded",
+            "budgetMinutes": 60,
+            "query": ""
+          },
+          "expect": {
+            "fresh": true,
+            "fetchedAtMs": 1000000
+          }
+        },
+        {
+          "id": "manual",
+          "action": "startRefresh",
+          "requestId": "manual",
+          "expect": {
+            "catalogState": "refreshing-fresh",
+            "sourceRequestCount": 1
+          }
+        },
+        {
+          "id": "manualFailure",
+          "action": "failCatalog",
+          "requestId": "manual",
+          "error": "source-unavailable",
+          "expect": {
+            "catalogState": "content-error",
+            "fresh": true,
+            "fetchedAtMs": 1000000,
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "freshDetail",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "addEnabled": true,
+            "disabledReason": null
+          }
+        },
+        {
+          "id": "laterExpiry",
+          "action": "setClock",
+          "clockMs": 1300000,
+          "expect": {
+            "ageMs": 300000,
+            "fresh": false,
+            "addEnabled": false,
+            "disabledReason": "stale"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CAT-07",
+      "purpose": "Latest initiated refresh wins despite completion order",
+      "initial": {
+        "clockMs": 1000100,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [
+          "canal-gardens"
+        ],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "requestA",
+          "action": "startRefresh",
+          "requestId": "A",
+          "expect": {
+            "catalogState": "refreshing-fresh",
+            "activeRequestId": "A"
+          }
+        },
+        {
+          "id": "requestB",
+          "action": "startRefresh",
+          "requestId": "B",
+          "expect": {
+            "catalogState": "refreshing-fresh",
+            "activeRequestId": "B"
+          }
+        },
+        {
+          "id": "clockB",
+          "action": "setClock",
+          "clockMs": 1000150,
+          "expect": {
+            "clockMs": 1000150
+          }
+        },
+        {
+          "id": "finishB",
+          "action": "completeCatalog",
+          "requestId": "B",
+          "fixture": "catalog-changed",
+          "expect": {
+            "catalogState": "content",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "river-walk"
+            ],
+            "savedCount": 0,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000150,
+            "error": null
+          }
+        },
+        {
+          "id": "clockA",
+          "action": "setClock",
+          "clockMs": 1000200,
+          "expect": {
+            "clockMs": 1000200
+          }
+        },
+        {
+          "id": "finishA",
+          "action": "completeCatalog",
+          "requestId": "A",
+          "fixture": "catalog-boundary",
+          "expect": {
+            "catalogState": "content",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "river-walk"
+            ],
+            "savedCount": 0,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000150,
+            "error": null,
+            "ignoredRequestId": "A"
+          }
+        },
+        {
+          "id": "resetOlderError",
+          "action": "resetHarness",
+          "initial": {
+            "clockMs": 1000300,
+            "catalogFixture": "catalog-valid",
+            "fetchedAtMs": 1000000,
+            "savedIds": [
+              "canal-gardens"
+            ],
+            "storage": "loaded",
+            "budgetMinutes": 60,
+            "query": ""
+          },
+          "expect": {
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000
+          }
+        },
+        {
+          "id": "requestA2",
+          "action": "startRefresh",
+          "requestId": "A2",
+          "expect": {
+            "activeRequestId": "A2"
+          }
+        },
+        {
+          "id": "requestB2",
+          "action": "startRefresh",
+          "requestId": "B2",
+          "expect": {
+            "activeRequestId": "B2"
+          }
+        },
+        {
+          "id": "clockB2",
+          "action": "setClock",
+          "clockMs": 1000350,
+          "expect": {
+            "clockMs": 1000350
+          }
+        },
+        {
+          "id": "finishB2",
+          "action": "completeCatalog",
+          "requestId": "B2",
+          "fixture": "catalog-changed",
+          "expect": {
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "river-walk"
+            ],
+            "savedCount": 0,
+            "fetchedAtMs": 1000350,
+            "error": null
+          }
+        },
+        {
+          "id": "clockA2",
+          "action": "setClock",
+          "clockMs": 1000400,
+          "expect": {
+            "clockMs": 1000400
+          }
+        },
+        {
+          "id": "failA2",
+          "action": "failCatalog",
+          "requestId": "A2",
+          "error": "source-unavailable",
+          "expect": {
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "river-walk"
+            ],
+            "fetchedAtMs": 1000350,
+            "error": null,
+            "ignoredRequestId": "A2"
+          }
+        },
+        {
+          "id": "resetNewerError",
+          "action": "resetHarness",
+          "initial": {
+            "clockMs": 1000450,
+            "catalogFixture": "catalog-valid",
+            "fetchedAtMs": 1000000,
+            "savedIds": [
+              "canal-gardens"
+            ],
+            "storage": "loaded",
+            "budgetMinutes": 60,
+            "query": ""
+          },
+          "expect": {
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000
+          }
+        },
+        {
+          "id": "requestA3",
+          "action": "startRefresh",
+          "requestId": "A3",
+          "expect": {
+            "activeRequestId": "A3"
+          }
+        },
+        {
+          "id": "requestB3",
+          "action": "startRefresh",
+          "requestId": "B3",
+          "expect": {
+            "activeRequestId": "B3"
+          }
+        },
+        {
+          "id": "clockB3",
+          "action": "setClock",
+          "clockMs": 1000500,
+          "expect": {
+            "clockMs": 1000500
+          }
+        },
+        {
+          "id": "failB3",
+          "action": "failCatalog",
+          "requestId": "B3",
+          "error": "source-unavailable",
+          "expect": {
+            "catalogState": "content-error",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "error": "source-unavailable"
+          }
+        },
+        {
+          "id": "clockA3",
+          "action": "setClock",
+          "clockMs": 1000600,
+          "expect": {
+            "clockMs": 1000600
+          }
+        },
+        {
+          "id": "finishA3",
+          "action": "completeCatalog",
+          "requestId": "A3",
+          "fixture": "catalog-changed",
+          "expect": {
+            "catalogState": "content-error",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "error": "source-unavailable",
+            "ignoredRequestId": "A3"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CAT-08",
+      "purpose": "Reject entire invalid refresh and preserve cache",
+      "initial": {
+        "clockMs": 1000100,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [
+          "canal-gardens"
+        ],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "duplicate",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-duplicate",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "enum",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-enum",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "fields",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-fields",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "art",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-art",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "blank-id",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-blank-id",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "missing-id",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-missing-id",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "missing-title",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-missing-title",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "blank-title",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-blank-title",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "zero-duration",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-zero-duration",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "zero-distance",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-zero-distance",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "newValidVisible": false
+          }
+        },
+        {
+          "id": "terrain",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-invalid-terrain",
+          "expect": {
+            "catalogState": "content-error",
+            "error": "invalid-catalog",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "fetchedAtMs": 1000000,
+            "newValidVisible": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "SAVE-01",
+      "purpose": "Successful add is shared by detail and list",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "detail",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "screen": "detail",
+            "routeId": "canal-gardens",
+            "distanceLabel": "3.2 km",
+            "addEnabled": true,
+            "saved": false
+          }
+        },
+        {
+          "id": "pending",
+          "action": "startSave",
+          "routeId": "canal-gardens",
+          "expect": {
+            "saveState": "saving",
+            "addEnabled": false,
+            "storedIds": []
+          }
+        },
+        {
+          "id": "commit",
+          "action": "completeSave",
+          "result": "success",
+          "expect": {
+            "saveState": "idle",
+            "saved": true,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "actionLabel": "Remove saved walk"
+          }
+        },
+        {
+          "id": "back",
+          "action": "backToList",
+          "expect": {
+            "screen": "list",
+            "savedCount": 1,
+            "savedBadgeIds": [
+              "canal-gardens"
+            ],
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SAVE-02",
+      "purpose": "Failed atomic write and retry",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "detail",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "saved": false,
+            "addEnabled": true
+          }
+        },
+        {
+          "id": "pending",
+          "action": "startSave",
+          "routeId": "canal-gardens",
+          "expect": {
+            "saveState": "saving",
+            "addEnabled": false,
+            "duplicateSubmissionAccepted": false
+          }
+        },
+        {
+          "id": "duplicateTap",
+          "action": "startSave",
+          "routeId": "canal-gardens",
+          "expect": {
+            "saveState": "saving",
+            "storageWriteCount": 1,
+            "storedIds": []
+          }
+        },
+        {
+          "id": "failure",
+          "action": "completeSave",
+          "result": "write-failure",
+          "expect": {
+            "saveState": "error",
+            "saved": false,
+            "storedIds": [],
+            "inlineRetryEnabled": true
+          }
+        },
+        {
+          "id": "retry",
+          "action": "retrySave",
+          "expect": {
+            "saveState": "saving",
+            "storedIds": []
+          }
+        },
+        {
+          "id": "success",
+          "action": "completeSave",
+          "result": "success",
+          "expect": {
+            "saveState": "idle",
+            "saved": true,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "inlineRetryEnabled": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "SAVE-03",
+      "purpose": "Closed reason precedes stale reason; stale open route cannot be added",
+      "initial": {
+        "clockMs": 1300000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "closed",
+          "action": "openDetail",
+          "routeId": "glasshouse-loop",
+          "expect": {
+            "addEnabled": false,
+            "disabledReason": "closed",
+            "saved": false
+          }
+        },
+        {
+          "id": "closedAttempt",
+          "action": "addBookmark",
+          "routeId": "glasshouse-loop",
+          "expect": {
+            "result": "rejected-closed",
+            "storedIds": []
+          }
+        },
+        {
+          "id": "openStale",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "addEnabled": false,
+            "disabledReason": "stale",
+            "saved": false
+          }
+        },
+        {
+          "id": "staleAttempt",
+          "action": "addBookmark",
+          "routeId": "canal-gardens",
+          "expect": {
+            "result": "rejected-stale",
+            "storedIds": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "SAVE-04",
+      "purpose": "Previously saved closed and stale routes can be removed",
+      "initial": {
+        "clockMs": 1300000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [
+          "glasshouse-loop",
+          "canal-gardens"
+        ],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "closed",
+          "action": "openDetail",
+          "routeId": "glasshouse-loop",
+          "expect": {
+            "saved": true,
+            "removeEnabled": true,
+            "disabledReason": null
+          }
+        },
+        {
+          "id": "removePending",
+          "action": "startRemove",
+          "routeId": "glasshouse-loop",
+          "expect": {
+            "saveState": "saving",
+            "storedIds": [
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "saved": true
+          }
+        },
+        {
+          "id": "removeFailure",
+          "action": "completeSave",
+          "result": "write-failure",
+          "expect": {
+            "saveState": "error",
+            "storedIds": [
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "saved": true,
+            "inlineRetryEnabled": true
+          }
+        },
+        {
+          "id": "removeRetry",
+          "action": "retrySave",
+          "expect": {
+            "saveState": "saving",
+            "storedIds": [
+              "glasshouse-loop",
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "removeCommit",
+          "action": "completeSave",
+          "result": "success",
+          "expect": {
+            "saveState": "idle",
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "savedCount": 1,
+            "saved": false
+          }
+        },
+        {
+          "id": "stale",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "saved": true,
+            "removeEnabled": true
+          }
+        },
+        {
+          "id": "removeStale",
+          "action": "startRemove",
+          "routeId": "canal-gardens",
+          "expect": {
+            "saveState": "saving",
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "saved": true
+          }
+        },
+        {
+          "id": "removeStaleCommit",
+          "action": "completeSave",
+          "result": "success",
+          "expect": {
+            "saveState": "idle",
+            "storedIds": [],
+            "savedCount": 0,
+            "saved": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "SAVE-05",
+      "purpose": "Storage survives process recreation; catalog is reloaded",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [
+          "canal-gardens",
+          "retired-walk"
+        ],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "before",
+          "action": "openList",
+          "expect": {
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens",
+              "retired-walk"
+            ],
+            "savedBadgeIds": [
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "recreate",
+          "action": "recreateProcess",
+          "expect": {
+            "catalogState": "loading",
+            "catalogFixture": null,
+            "storedIds": [
+              "canal-gardens",
+              "retired-walk"
+            ],
+            "savedActionsEnabled": false
+          }
+        },
+        {
+          "id": "newClock",
+          "action": "setClock",
+          "clockMs": 2000000,
+          "expect": {
+            "clockMs": 2000000,
+            "catalogState": "loading"
+          }
+        },
+        {
+          "id": "storageLoaded",
+          "action": "completeStorageLoad",
+          "expect": {
+            "storedIds": [
+              "canal-gardens",
+              "retired-walk"
+            ],
+            "savedActionsEnabled": false
+          }
+        },
+        {
+          "id": "catalogLoaded",
+          "action": "completeCatalog",
+          "fixture": "catalog-changed",
+          "expect": {
+            "catalogState": "content",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "river-walk"
+            ],
+            "savedCount": 0,
+            "storedIds": [
+              "canal-gardens",
+              "retired-walk"
+            ],
+            "fetchedAtMs": 2000000
+          }
+        },
+        {
+          "id": "reappears",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-valid",
+          "expect": {
+            "savedCount": 1,
+            "savedBadgeIds": [
+              "canal-gardens"
+            ],
+            "storedIds": [
+              "canal-gardens",
+              "retired-walk"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SAVE-06",
+      "purpose": "Storage-load failure does not hide catalog",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [
+          "canal-gardens"
+        ],
+        "storage": "loading",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "failure",
+          "action": "failStorageLoad",
+          "expect": {
+            "catalogState": "content",
+            "listIds": [
+              "pine-loop",
+              "glasshouse-loop",
+              "canal-gardens"
+            ],
+            "savedCount": null,
+            "addEnabled": false,
+            "retrySavedWalksEnabled": true
+          }
+        },
+        {
+          "id": "pendingDetail",
+          "action": "openDetail",
+          "routeId": "pine-loop",
+          "expect": {
+            "routeId": "pine-loop",
+            "savedCount": null,
+            "addEnabled": false,
+            "disabledReason": "storage-unavailable"
+          }
+        },
+        {
+          "id": "retry",
+          "action": "retryStorageLoad",
+          "expect": {
+            "savedCount": null,
+            "addEnabled": false,
+            "storageState": "loading"
+          }
+        },
+        {
+          "id": "success",
+          "action": "completeStorageLoad",
+          "expect": {
+            "storageState": "loaded",
+            "savedCount": 1,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "retrySavedWalksEnabled": false
+          }
+        },
+        {
+          "id": "restoredAdd",
+          "action": "openDetail",
+          "routeId": "pine-loop",
+          "expect": {
+            "routeId": "pine-loop",
+            "addEnabled": true,
+            "saved": false
+          }
+        },
+        {
+          "id": "restoredRemove",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "routeId": "canal-gardens",
+            "saved": true,
+            "removeEnabled": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "NAV-01",
+      "purpose": "Selected route removed by refresh",
+      "initial": {
+        "clockMs": 1000100,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [
+          "canal-gardens"
+        ],
+        "storage": "loaded",
+        "budgetMinutes": 90,
+        "query": "canal"
+      },
+      "steps": [
+        {
+          "id": "selected",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "screen": "detail",
+            "routeId": "canal-gardens",
+            "saved": true
+          }
+        },
+        {
+          "id": "removed",
+          "action": "refreshWithFixture",
+          "fixture": "catalog-changed",
+          "expect": {
+            "screen": "unavailable",
+            "routeId": "canal-gardens",
+            "backEnabled": true,
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "savedCount": 0
+          }
+        },
+        {
+          "id": "back",
+          "action": "backToList",
+          "expect": {
+            "screen": "list",
+            "query": "canal",
+            "budgetMinutes": 90,
+            "listIds": [],
+            "storedIds": [
+              "canal-gardens"
+            ],
+            "savedCount": 0
+          }
+        },
+        {
+          "id": "unknown",
+          "action": "openDetail",
+          "routeId": "never-listed",
+          "expect": {
+            "screen": "unavailable",
+            "routeId": "never-listed",
+            "backEnabled": true,
+            "storedIds": [
+              "canal-gardens"
+            ]
+          }
+        },
+        {
+          "id": "unknownBack",
+          "action": "backToList",
+          "expect": {
+            "screen": "list",
+            "query": "canal",
+            "budgetMinutes": 90,
+            "storedIds": [
+              "canal-gardens"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CLOCK-01",
+      "purpose": "Freshness switches at exactly 300000 ms, including visible action and execution",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-valid",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": ""
+      },
+      "steps": [
+        {
+          "id": "detail",
+          "action": "openDetail",
+          "routeId": "canal-gardens",
+          "expect": {
+            "addEnabled": true,
+            "fresh": true
+          }
+        },
+        {
+          "id": "beforeTtl",
+          "action": "setClock",
+          "clockMs": 1299999,
+          "expect": {
+            "ageMs": 299999,
+            "fresh": true,
+            "addEnabled": true,
+            "staleWarning": false
+          }
+        },
+        {
+          "id": "atTtl",
+          "action": "setClock",
+          "clockMs": 1300000,
+          "expect": {
+            "ageMs": 300000,
+            "fresh": false,
+            "addEnabled": false,
+            "disabledReason": "stale",
+            "staleWarning": true
+          }
+        },
+        {
+          "id": "staleAction",
+          "action": "addBookmark",
+          "routeId": "canal-gardens",
+          "expect": {
+            "result": "rejected-stale",
+            "storedIds": []
+          }
+        },
+        {
+          "id": "resume",
+          "action": "foreground",
+          "expect": {
+            "ageMs": 300000,
+            "fresh": false,
+            "addEnabled": false,
+            "disabledReason": "stale"
+          }
+        },
+        {
+          "id": "useCaseBypass",
+          "action": "invokeAddUseCase",
+          "routeId": "canal-gardens",
+          "expect": {
+            "result": "rejected-stale",
+            "storedIds": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "VIEW-01",
+      "purpose": "Large-text layout, state variants and stable semantics",
+      "initial": {
+        "clockMs": 1000000,
+        "catalogFixture": "catalog-long-text",
+        "fetchedAtMs": 1000000,
+        "savedIds": [],
+        "storage": "loaded",
+        "budgetMinutes": 60,
+        "query": "",
+        "textScale": 1.6,
+        "viewportWidthDp": 393,
+        "viewportHeightDp": 852,
+        "themes": [
+          "light",
+          "dark"
+        ]
+      },
+      "steps": [
+        {
+          "id": "longList",
+          "action": "openList",
+          "expect": {
+            "listIds": [
+              "long-title"
+            ],
+            "textVisible": true,
+            "horizontalClipping": false,
+            "semanticLabels": [
+              "Search walks",
+              "Refresh walks",
+              "60 minutes"
+            ]
+          }
+        },
+        {
+          "id": "longDetail",
+          "action": "openDetail",
+          "routeId": "long-title",
+          "expect": {
+            "primaryActionReachable": true,
+            "backEnabled": true,
+            "semanticLabels": [
+              "Back to walks",
+              "Save walk"
+            ],
+            "descriptionReachableByScroll": true
+          }
+        },
+        {
+          "id": "back",
+          "action": "backToList",
+          "expect": {
+            "screen": "list",
+            "listIds": [
+              "long-title"
+            ]
+          }
+        },
+        {
+          "id": "loading",
+          "action": "startRefresh",
+          "requestId": "visual",
+          "expect": {
+            "catalogState": "refreshing-fresh",
+            "retainedContentVisible": true,
+            "progressVisible": true,
+            "screen": "list"
+          }
+        },
+        {
+          "id": "error",
+          "action": "failCatalog",
+          "requestId": "visual",
+          "error": "source-unavailable",
+          "expect": {
+            "catalogState": "content-error",
+            "retainedContentVisible": true,
+            "retryCatalogEnabled": true,
+            "primaryActionReachable": true,
+            "screen": "list"
+          }
+        },
+        {
+          "id": "expiry",
+          "action": "setClock",
+          "clockMs": 1300000,
+          "expect": {
+            "screen": "list",
+            "catalogState": "stale-error",
+            "staleWarning": true,
+            "retryCatalogEnabled": true,
+            "longTitleReadable": true
+          }
+        }
+      ],
+      "verification": "Visual and semantics assertions require future rendered Android/Flutter checks; fixture validation only checks their declaration."
+    }
+  ]
+}

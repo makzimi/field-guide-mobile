@@ -1,0 +1,10 @@
+{
+  "fixtureId": "catalog-changed",
+  "kind": "catalog",
+  "walks": [
+    {"id": "pine-loop", "title": "Pine loop", "description": "A gentle circuit through the pines.", "durationMinutes": 25, "distanceMetres": 1400, "terrain": "woodland", "availability": "closed", "artKey": "pine"},
+    {"id": "glasshouse-loop", "title": "Glasshouse loop", "description": "A garden path beside the old glasshouse.", "durationMinutes": 35, "distanceMetres": 2100, "terrain": "garden", "availability": "closed", "artKey": "glasshouse"},
+    {"id": "river-walk", "title": "River walk", "description": "A new path beside the river.", "durationMinutes": 45, "distanceMetres": 3000, "terrain": "waterside", "availability": "open", "artKey": "canal"},
+    {"id": "ridge-path", "title": "Ridge path", "description": "A longer climb to an open ridge.", "durationMinutes": 80, "distanceMetres": 5400, "terrain": "ridge", "availability": "open", "artKey": "ridge"}
+  ]
+}

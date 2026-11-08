@@ -1,0 +1,37 @@
+{
+  "fixtureId": "catalog-invalid-fields",
+  "kind": "catalog",
+  "walks": [
+    {
+      "id": "new-valid",
+      "title": "New valid",
+      "description": "This valid row must not leak from a rejected snapshot.",
+      "durationMinutes": 20,
+      "distanceMetres": 1000,
+      "terrain": "garden",
+      "availability": "open",
+      "artKey": "glasshouse"
+    },
+    {
+      "id": " ",
+      "title": "Blank ID",
+      "description": "Invalid identifier.",
+      "durationMinutes": 25,
+      "distanceMetres": 1400,
+      "terrain": "woodland",
+      "availability": "open",
+      "artKey": "pine"
+    },
+    {
+      "id": "zero-time",
+      "title": "Zero time",
+      "description": "Invalid duration.",
+      "durationMinutes": 0,
+      "distanceMetres": 1000,
+      "terrain": "woodland",
+      "availability": "open",
+      "artKey": "pine"
+    }
+  ],
+  "invalidBecause": "blank-id-and-nonpositive-duration"
+}

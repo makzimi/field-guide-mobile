@@ -1,0 +1,21 @@
+.DS_Store
+.idea/
+.vscode/
+verification/
+__pycache__/
+*.pyc
+*.keystore
+*.jks
+*.apk
+*.aab
+local.properties
+.env
+.env.*
+
+# Local verification caches can also be symlinks.
+samples/android/.gradle-user-home
+samples/flutter/.gradle-cache
+samples/flutter/.pub-cache
+
+# Device capture output, never source.
+samples/flutter/evidence/

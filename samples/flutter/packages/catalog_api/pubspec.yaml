@@ -1,0 +1,7 @@
+name: catalog_api
+description: Platform-free public catalog boundary for the Field Guide sample.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: '>=3.13.5 <4.0.0'

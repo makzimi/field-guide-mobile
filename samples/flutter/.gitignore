@@ -1,0 +1,15 @@
+.dart_tool/
+.pub-cache/
+.gradle-cache/
+.config/
+.analyzer-state/
+.flutter-plugins-dependencies
+build/
+**/build/
+**/android/.gradle/
+**/android/local.properties
+**/android/captures/
+**/android/.cxx/
+
+# Generated copies from the single canonical contract source.
+apps/field_guide/assets/generated/

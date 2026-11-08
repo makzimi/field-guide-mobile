@@ -1,0 +1,46 @@
+{
+  "fixtureId": "catalog-sort-ties",
+  "kind": "catalog",
+  "walks": [
+    {
+      "id": "zeta",
+      "title": "Same path",
+      "description": "Tie third key.",
+      "durationMinutes": 30,
+      "distanceMetres": 1000,
+      "terrain": "garden",
+      "availability": "open",
+      "artKey": "glasshouse"
+    },
+    {
+      "id": "later",
+      "title": "Aardvark path",
+      "description": "Tie second key.",
+      "durationMinutes": 30,
+      "distanceMetres": 1000,
+      "terrain": "garden",
+      "availability": "open",
+      "artKey": "glasshouse"
+    },
+    {
+      "id": "alpha",
+      "title": "same path",
+      "description": "Tie third key.",
+      "durationMinutes": 30,
+      "distanceMetres": 1000,
+      "terrain": "garden",
+      "availability": "open",
+      "artKey": "glasshouse"
+    },
+    {
+      "id": "short",
+      "title": "Short path",
+      "description": "First duration.",
+      "durationMinutes": 15,
+      "distanceMetres": 500,
+      "terrain": "woodland",
+      "availability": "open",
+      "artKey": "pine"
+    }
+  ]
+}

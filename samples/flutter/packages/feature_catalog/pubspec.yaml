@@ -1,0 +1,11 @@
+name: feature_catalog
+description: Flutter presentation boundary for the Field Guide sample.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: '>=3.13.5 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  catalog_api: ^0.1.0

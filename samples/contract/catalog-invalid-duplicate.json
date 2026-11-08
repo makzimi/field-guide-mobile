@@ -1,0 +1,37 @@
+{
+  "fixtureId": "catalog-invalid-duplicate",
+  "kind": "catalog",
+  "walks": [
+    {
+      "id": "new-valid",
+      "title": "New valid",
+      "description": "This valid row must not leak from a rejected snapshot.",
+      "durationMinutes": 20,
+      "distanceMetres": 1000,
+      "terrain": "garden",
+      "availability": "open",
+      "artKey": "glasshouse"
+    },
+    {
+      "id": "pine-loop",
+      "title": "Pine loop",
+      "description": "First copy.",
+      "durationMinutes": 25,
+      "distanceMetres": 1400,
+      "terrain": "woodland",
+      "availability": "open",
+      "artKey": "pine"
+    },
+    {
+      "id": "pine-loop",
+      "title": "Pine loop again",
+      "description": "Duplicate stable ID.",
+      "durationMinutes": 30,
+      "distanceMetres": 1500,
+      "terrain": "woodland",
+      "availability": "open",
+      "artKey": "pine"
+    }
+  ],
+  "invalidBecause": "duplicate-id"
+}
