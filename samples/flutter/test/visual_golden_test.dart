@@ -27,6 +27,17 @@ void main() {
       );
     }
     await roboto.load();
+    final serif = FontLoader('packages/feature_catalog/SourceSerif4')
+      ..addFont(
+        Future.value(
+          ByteData.sublistView(
+            await File(
+              'packages/feature_catalog/fonts/SourceSerif4-Semibold.ttf',
+            ).readAsBytes(),
+          ),
+        ),
+      );
+    await serif.load();
     final icons = FontLoader('MaterialIcons')
       ..addFont(
         Future.value(

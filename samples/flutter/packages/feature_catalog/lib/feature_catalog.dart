@@ -3,6 +3,31 @@ import 'dart:async';
 import 'package:catalog_api/catalog_api.dart';
 import 'package:flutter/material.dart';
 
+import 'src/components.dart';
+import 'src/field_guide_theme.dart';
+import 'src/landscape_art.dart';
+
+export 'src/components.dart'
+    show
+        StatusPill,
+        SavedMark,
+        NoticePanel,
+        ErrorPanel,
+        QuietMessage,
+        FactsRow,
+        PlaceholderCard,
+        HeroIconButton;
+export 'src/field_guide_theme.dart'
+    show
+        fieldGuideColors,
+        fieldGuideTheme,
+        contrastRatio,
+        FieldGuideType,
+        fieldGuideSerifFamily,
+        fieldGuideSerifPackage;
+export 'src/landscape_art.dart'
+    show LandscapeArt, ArtPalette, ArtTransform, artFit, paintScene;
+
 typedef CancelExpiry = void Function();
 
 abstract interface class ExpiryScheduler {
@@ -332,25 +357,31 @@ class _CatalogFeatureState extends State<CatalogFeature>
   }
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: widget.controller,
-    builder: (context, _) {
-      final state = widget.controller.state;
-      return PopScope(
-        canPop: state.selectedId == null,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop && state.selectedId != null) {
-            unawaited(widget.controller.dispatch(const BackToList()));
-          }
-        },
-        child: state.selectedId == null
-            ? WalkListScreen(state: state, dispatch: widget.controller.dispatch)
-            : WalkDetailScreen(
-                state: state,
-                dispatch: widget.controller.dispatch,
-              ),
-      );
-    },
+  Widget build(BuildContext context) => Theme(
+    data: fieldGuideTheme(Theme.of(context).brightness),
+    child: ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        final state = widget.controller.state;
+        return PopScope(
+          canPop: state.selectedId == null,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && state.selectedId != null) {
+              unawaited(widget.controller.dispatch(const BackToList()));
+            }
+          },
+          child: state.selectedId == null
+              ? WalkListScreen(
+                  state: state,
+                  dispatch: widget.controller.dispatch,
+                )
+              : WalkDetailScreen(
+                  state: state,
+                  dispatch: widget.controller.dispatch,
+                ),
+        );
+      },
+    ),
   );
 }
 
@@ -362,29 +393,41 @@ class _StatusMessages extends StatelessWidget {
   final DispatchCatalog dispatch;
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       if (state.catalog.refreshing && state.catalog.snapshot != null)
         const LinearProgressIndicator(semanticsLabel: 'Refreshing walks'),
       if (state.stale)
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 8),
-          child: Text('These walks need a refresh before saving.'),
+          child: NoticePanel(
+            message: 'These walks need a refresh before saving.',
+          ),
         ),
       if (state.catalog.catalogError != null)
         _InlineRetry(
           message: state.catalog.catalogError!,
+          headline: state.catalogStatus == 'full-error'
+              ? 'Walks are unavailable right now.'
+              : null,
+          error: state.catalog.snapshot == null,
           label: 'Retry walks',
           onPressed: () => dispatch(const RefreshCatalog()),
         ),
       if (state.catalog.storageStatus == StorageStatus.loading)
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: Text('Loading saved walks…'),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'Loading saved walks…',
+            style: FieldGuideType.facts.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
       if (state.catalog.storageError != null)
         _InlineRetry(
           message: state.catalog.storageError!,
+          error: false,
           label: 'Retry saved walks',
           onPressed: () => dispatch(const RetrySavedWalks()),
         ),
@@ -392,13 +435,18 @@ class _StatusMessages extends StatelessWidget {
   );
 }
 
+/// A message panel with its retry text button directly beneath it.
 class _InlineRetry extends StatelessWidget {
   const _InlineRetry({
     required this.message,
+    required this.error,
     required this.label,
     required this.onPressed,
+    this.headline,
   });
   final String message, label;
+  final String? headline;
+  final bool error;
   final VoidCallback? onPressed;
   @override
   Widget build(BuildContext context) => Padding(
@@ -406,7 +454,12 @@ class _InlineRetry extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(message),
+        SizedBox(
+          width: double.infinity,
+          child: error
+              ? ErrorPanel(message: message, headline: headline)
+              : NoticePanel(message: message),
+        ),
         TextButton(onPressed: onPressed, child: Text(label)),
       ],
     ),
@@ -453,137 +506,218 @@ class _WalkListScreenState extends State<WalkListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = widget.state;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Field Guide'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh walks',
-            onPressed: () => widget.dispatch(const RefreshCatalog()),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Text(
-              'Walks worth finding',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.savedCount == null
-                  ? 'Saved walks unavailable'
-                  : '${state.savedCount} saved ${state.savedCount == 1 ? 'walk' : 'walks'}',
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              key: const ValueKey('walk-search'),
-              controller: _search,
-              onChanged: (text) => widget.dispatch(SetQuery(text)),
-              decoration: const InputDecoration(
-                labelText: 'Search walks',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                for (final minutes in [15, 30, 60, 90])
-                  ChoiceChip(
-                    key: ValueKey('budget-$minutes'),
-                    label: Text('$minutes min'),
-                    selected: state.budgetMinutes == minutes,
-                    onSelected: (_) => widget.dispatch(SetBudget(minutes)),
+        // A plain scroll view builds every card, so each stays findable and
+        // reachable with ensureVisible however tall the cards are.
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'FIELD GUIDE',
+                      style: FieldGuideType.eyebrow.copyWith(
+                        color: scheme.secondary,
+                      ),
+                    ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _StatusMessages(state: state, dispatch: widget.dispatch),
-            if (state.catalog.snapshot == null && state.catalog.refreshing)
-              const Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    semanticsLabel: 'Loading walks',
+                  IconButton(
+                    tooltip: 'Refresh walks',
+                    onPressed: () => widget.dispatch(const RefreshCatalog()),
+                    icon: const Icon(Icons.refresh),
+                  ),
+                ],
+              ),
+              Text(
+                'Walks worth finding',
+                style: FieldGuideType.pageTitle.copyWith(
+                  color: scheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                key: const ValueKey('walk-search'),
+                controller: _search,
+                onChanged: (text) => widget.dispatch(SetQuery(text)),
+                decoration: InputDecoration(
+                  labelText: 'Search walks',
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: scheme.surfaceContainerHighest,
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(28)),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: const BorderRadius.all(Radius.circular(28)),
+                    borderSide: BorderSide(color: scheme.primary, width: 2),
                   ),
                 ),
               ),
-            if (state.catalogStatus == 'full-error')
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text('Walks are unavailable right now.'),
-              ),
-            if (state.catalog.snapshot != null && state.walks.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Column(
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
                   children: [
-                    const Text('No walks match your filters.'),
-                    TextButton(
-                      onPressed: () => widget.dispatch(const ClearFilters()),
-                      child: const Text('Clear filters'),
-                    ),
+                    for (final minutes in [15, 30, 60, 90])
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          key: ValueKey('budget-$minutes'),
+                          label: Text('$minutes min'),
+                          selected: state.budgetMinutes == minutes,
+                          showCheckmark: false,
+                          backgroundColor: Colors.transparent,
+                          selectedColor: scheme.primary,
+                          shape: const StadiumBorder(),
+                          side: BorderSide(
+                            color: state.budgetMinutes == minutes
+                                ? scheme.primary
+                                : scheme.outlineVariant,
+                          ),
+                          labelStyle: FieldGuideType.button.copyWith(
+                            color: state.budgetMinutes == minutes
+                                ? scheme.onPrimary
+                                : scheme.onSurface,
+                          ),
+                          onSelected: (_) =>
+                              widget.dispatch(SetBudget(minutes)),
+                        ),
+                      ),
                   ],
                 ),
               ),
-            for (final route in state.walks)
-              Card(
-                clipBehavior: Clip.antiAlias,
-                margin: const EdgeInsets.only(top: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: InkWell(
-                  key: ValueKey('route-${route.walk.id}'),
-                  onTap: () => widget.dispatch(OpenDetail(route.walk.id)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 64,
-                          height: 72,
-                          child: LandscapeArt(artKey: route.walk.artKey),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                route.walk.title,
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: 6),
-                              Text('${route.duration} · ${route.distance}'),
-                              const SizedBox(height: 6),
-                              Wrap(
-                                spacing: 12,
-                                children: [
-                                  Text(
-                                    route.walk.availability ==
-                                            Availability.closed
-                                        ? 'Closed'
-                                        : 'Open',
-                                  ),
-                                  if (route.saved) const Text('Saved'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.bookmark,
+                      size: 16,
+                      color: scheme.secondary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      state.savedCount == null
+                          ? 'Saved walks unavailable'
+                          : '${state.savedCount} saved ${state.savedCount == 1 ? 'walk' : 'walks'}',
+                      style: FieldGuideType.facts.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _StatusMessages(state: state, dispatch: widget.dispatch),
+              if (state.catalog.snapshot == null &&
+                  state.catalog.refreshing) ...[
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      semanticsLabel: 'Loading walks',
                     ),
                   ),
                 ),
+                const ExcludeSemantics(
+                  child: Column(
+                    children: [
+                      PlaceholderCard(),
+                      SizedBox(height: 16),
+                      PlaceholderCard(),
+                    ],
+                  ),
+                ),
+              ],
+              if (state.catalog.snapshot != null && state.walks.isEmpty)
+                Column(
+                  children: [
+                    const QuietMessage(message: 'No walks match your filters.'),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => widget.dispatch(const ClearFilters()),
+                        child: const Text('Clear filters'),
+                      ),
+                    ),
+                  ],
+                ),
+              for (final route in state.walks)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: _WalkCard(
+                    route: route,
+                    onTap: () => widget.dispatch(OpenDetail(route.walk.id)),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WalkCard extends StatelessWidget {
+  const _WalkCard({required this.route, required this.onTap});
+  final WalkPresentation route;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.surfaceContainerLowest,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      child: InkWell(
+        key: ValueKey('route-${route.walk.id}'),
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 160,
+              child: LandscapeArt(artKey: route.walk.artKey),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    route.walk.title,
+                    style: FieldGuideType.cardTitle.copyWith(
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${route.duration} · ${route.distance}',
+                    style: FieldGuideType.facts.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      StatusPill(
+                        closed: route.walk.availability == Availability.closed,
+                      ),
+                      const Spacer(),
+                      if (route.saved) const SavedMark(),
+                    ],
+                  ),
+                ],
               ),
+            ),
           ],
         ),
       ),
@@ -602,205 +736,177 @@ class WalkDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final detail = state.detail;
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: 'Back to walks',
-          onPressed: () => dispatch(const BackToList()),
-          icon: const Icon(Icons.arrow_back),
+    final scheme = Theme.of(context).colorScheme;
+    if (detail == null) {
+      return Scaffold(
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    tooltip: 'Back to walks',
+                    onPressed: () => dispatch(const BackToList()),
+                    icon: const Icon(Icons.arrow_back),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Refresh walks',
+                    onPressed: () => dispatch(const RefreshCatalog()),
+                    icon: const Icon(Icons.refresh),
+                  ),
+                ],
+              ),
+              const QuietMessage(message: 'This walk is unavailable.'),
+              TextButton(
+                onPressed: () => dispatch(const BackToList()),
+                child: const Text('Back to walks'),
+              ),
+            ],
+          ),
         ),
-        title: const Text('Walk details'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh walks',
-            onPressed: () => dispatch(const RefreshCatalog()),
-            icon: const Icon(Icons.refresh),
+      );
+    }
+    final terrain = detail.walk.terrain.name;
+    return Scaffold(
+      body: Stack(
+        children: [
+          ListView(
+            padding: EdgeInsets.only(
+              bottom: 28 + MediaQuery.paddingOf(context).bottom,
+            ),
+            children: [
+              SizedBox(
+                height: 220,
+                child: LandscapeArt(artKey: detail.walk.artKey),
+              ),
+              SafeArea(
+                top: false,
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        detail.walk.title,
+                        key: const ValueKey('detail-title'),
+                        style: FieldGuideType.detailTitle.copyWith(
+                          color: scheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FactsRow(
+                        duration: detail.duration,
+                        distance: detail.distance,
+                        terrain:
+                            '${terrain[0].toUpperCase()}${terrain.substring(1)}',
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: StatusPill(
+                          closed:
+                              detail.walk.availability == Availability.closed,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _StatusMessages(state: state, dispatch: dispatch),
+                      Text(
+                        detail.walk.description,
+                        style: FieldGuideType.body.copyWith(
+                          color: scheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        key: const ValueKey('bookmark-action'),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          shape: const StadiumBorder(),
+                          textStyle: FieldGuideType.button,
+                        ),
+                        onPressed: state.addEnabled || state.removeEnabled
+                            ? () => dispatch(const ToggleBookmark())
+                            : null,
+                        child: Text(
+                          state.catalog.pendingId == detail.walk.id
+                              ? 'Saving…'
+                              : detail.saved
+                              ? 'Remove saved walk'
+                              : 'Save walk',
+                        ),
+                      ),
+                      if (state.disabledReason == 'closed')
+                        const _Reason(
+                          'This walk is closed. You can save it when it reopens.',
+                        ),
+                      if (state.disabledReason == 'stale')
+                        const _Reason('Refresh walks before saving.'),
+                      if (state.disabledReason == 'storage-unavailable')
+                        const _Reason(
+                          'Saved walks must load before you can make changes.',
+                        ),
+                      if (state.catalog.bookmarkError != null &&
+                          state.catalog.bookmarkErrorId == detail.walk.id)
+                        _InlineRetry(
+                          message: state.catalog.bookmarkError!,
+                          error: true,
+                          label: 'Retry save',
+                          onPressed: state.addEnabled || state.removeEnabled
+                              ? () => dispatch(const RetryBookmark())
+                              : null,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Pinned so back and refresh stay reachable while content scrolls.
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Row(
+                  children: [
+                    HeroIconButton(
+                      tooltip: 'Back to walks',
+                      onPressed: () => dispatch(const BackToList()),
+                      icon: Icons.arrow_back,
+                    ),
+                    const Spacer(),
+                    HeroIconButton(
+                      tooltip: 'Refresh walks',
+                      onPressed: () => dispatch(const RefreshCatalog()),
+                      icon: Icons.refresh,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
-      body: SafeArea(
-        child: detail == null
-            ? ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  const Text('This walk is unavailable.'),
-                  TextButton(
-                    onPressed: () => dispatch(const BackToList()),
-                    child: const Text('Back to walks'),
-                  ),
-                ],
-              )
-            : ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  SizedBox(
-                    height: 200,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: LandscapeArt(artKey: detail.walk.artKey),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    detail.walk.title,
-                    key: const ValueKey('detail-title'),
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 24,
-                    runSpacing: 8,
-                    children: [
-                      Text(detail.duration),
-                      Text(detail.distance),
-                      Text(
-                        '${detail.walk.terrain.name[0].toUpperCase()}${detail.walk.terrain.name.substring(1)}',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    detail.walk.availability == Availability.closed
-                        ? 'Closed'
-                        : 'Open',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(detail.walk.description),
-                  const SizedBox(height: 20),
-                  _StatusMessages(state: state, dispatch: dispatch),
-                  if (state.disabledReason == 'closed')
-                    const Text(
-                      'This walk is closed. You can save it when it reopens.',
-                    ),
-                  if (state.disabledReason == 'stale')
-                    const Text('Refresh walks before saving.'),
-                  if (state.disabledReason == 'storage-unavailable')
-                    const Text(
-                      'Saved walks must load before you can make changes.',
-                    ),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    key: const ValueKey('bookmark-action'),
-                    onPressed: state.addEnabled || state.removeEnabled
-                        ? () => dispatch(const ToggleBookmark())
-                        : null,
-                    child: Text(
-                      state.catalog.pendingId == detail.walk.id
-                          ? 'Saving…'
-                          : detail.saved
-                          ? 'Remove saved walk'
-                          : 'Save walk',
-                    ),
-                  ),
-                  if (state.catalog.bookmarkError != null &&
-                      state.catalog.bookmarkErrorId == detail.walk.id)
-                    _InlineRetry(
-                      message: state.catalog.bookmarkError!,
-                      label: 'Retry save',
-                      onPressed: state.addEnabled || state.removeEnabled
-                          ? () => dispatch(const RetryBookmark())
-                          : null,
-                    ),
-                ],
-              ),
-      ),
     );
   }
 }
 
-/// Original vector landscape, rendered locally without network assets.
-class LandscapeArt extends StatelessWidget {
-  const LandscapeArt({required this.artKey, super.key});
-  final ArtKey artKey;
+class _Reason extends StatelessWidget {
+  const _Reason(this.text);
+  final String text;
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: CustomPaint(
-      painter: _LandscapePainter(artKey, Theme.of(context).colorScheme),
-      child: const SizedBox.expand(),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 8),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: FieldGuideType.facts.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
     ),
   );
-}
-
-class _LandscapePainter extends CustomPainter {
-  _LandscapePainter(this.artKey, this.colors);
-  final ArtKey artKey;
-  final ColorScheme colors;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = colors.primaryContainer;
-    canvas.drawRect(Offset.zero & size, paint);
-    paint.color = colors.tertiaryContainer;
-    canvas.drawCircle(
-      Offset(size.width * .76, size.height * .25),
-      size.shortestSide * .13,
-      paint,
-    );
-    paint.color = colors.secondary;
-    final hills = Path()
-      ..moveTo(0, size.height * .65)
-      ..quadraticBezierTo(
-        size.width * .3,
-        size.height * .2,
-        size.width * .6,
-        size.height * .6,
-      )
-      ..quadraticBezierTo(
-        size.width * .85,
-        size.height * .4,
-        size.width,
-        size.height * .5,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(hills, paint);
-    paint.color = colors.primary;
-    final foreground = Path()
-      ..moveTo(0, size.height * .85)
-      ..quadraticBezierTo(
-        size.width * .5,
-        size.height * .55,
-        size.width,
-        size.height * .85,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(foreground, paint);
-    if (artKey == ArtKey.canal) {
-      paint.color = colors.surface;
-      final water = Path()
-        ..moveTo(size.width * .6, size.height * .58)
-        ..lineTo(size.width * .72, size.height * .58)
-        ..lineTo(size.width * .45, size.height)
-        ..lineTo(size.width * .15, size.height)
-        ..close();
-      canvas.drawPath(water, paint);
-    } else if (artKey == ArtKey.pine) {
-      paint.color = colors.onPrimaryContainer;
-      for (final x in [.2, .4, .6]) {
-        final tree = Path()
-          ..moveTo(size.width * x, size.height * .3)
-          ..lineTo(size.width * (x + .12), size.height * .72)
-          ..lineTo(size.width * (x - .12), size.height * .72)
-          ..close();
-        canvas.drawPath(tree, paint);
-      }
-    } else if (artKey == ArtKey.glasshouse) {
-      paint.color = colors.surface;
-      final house = Path()
-        ..moveTo(size.width * .2, size.height * .7)
-        ..lineTo(size.width * .2, size.height * .48)
-        ..lineTo(size.width * .45, size.height * .3)
-        ..lineTo(size.width * .7, size.height * .48)
-        ..lineTo(size.width * .7, size.height * .7)
-        ..close();
-      canvas.drawPath(house, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_LandscapePainter oldDelegate) =>
-      oldDelegate.artKey != artKey || oldDelegate.colors != colors;
 }

@@ -37,3 +37,5 @@ tasks.withType<Test>().configureEach {
     systemProperty("fieldGuide.contractDirectory", contractDirectory.canonicalPath)
     testLogging { events("passed", "failed", "skipped") }
 }
+
+apply(from = "$rootDir/gradle/scripts/screenshot-testing.gradle")

@@ -115,5 +115,16 @@ class CommandExecutionTest(unittest.TestCase):
             self.assertEqual(json.loads((output / "results.json").read_text())[0]["exitCode"], 0)
 
 
+class PreviewIntegrationTest(unittest.TestCase):
+    def test_full_harness_verifies_android_and_regenerates_flutter_previews(self):
+        from unittest.mock import patch
+        from samples.harness.check import configured_checks
+        with patch.dict('os.environ', {'FIELD_GUIDE_JAVA_HOME': '/jdk', 'ANDROID_HOME': '/sdk'}):
+            checks = configured_checks(Path('/tmp/field-guide-test'))
+        self.assertIn(':feature-catalog:verifyRoborazziDebug', checks['android-jvm'].argv)
+        self.assertEqual(checks['flutter-test'].argv[0], './scripts/test.sh')
+        self.assertNotIn('--update-goldens', checks['flutter-test'].argv)
+
+
 if __name__ == "__main__":
     unittest.main()

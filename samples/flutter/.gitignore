@@ -13,3 +13,7 @@ build/
 
 # Generated copies from the single canonical contract source.
 apps/field_guide/assets/generated/
+
+# Generated failure diffs and Flutter host registration.
+test/failures/
+apps/field_guide/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java

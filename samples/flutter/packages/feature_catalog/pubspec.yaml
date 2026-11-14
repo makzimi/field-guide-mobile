@@ -9,3 +9,10 @@ dependencies:
   flutter:
     sdk: flutter
   catalog_api: ^0.1.0
+
+flutter:
+  fonts:
+    - family: SourceSerif4
+      fonts:
+        - asset: fonts/SourceSerif4-Semibold.ttf
+          weight: 600

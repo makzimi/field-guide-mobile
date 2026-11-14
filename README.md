@@ -43,7 +43,7 @@ The same idea is implemented twice, so you can explore it in the stack you know 
   </tr>
 </table>
 
-Android images are app captures; Flutter images are checked-in golden test baselines. Both show the versions included in this repository.
+Android images are the latest presentation captures of the R2 app design (Android 16 emulator, light theme). Flutter images are the current checked-in golden test baselines. Both match the sample source included here.
 
 </details>
 
@@ -57,7 +57,7 @@ You do not need to install either SDK to start reading. Pick one question and fo
 | --- | --- | --- |
 | **Unit tests:** does a 60-minute filter keep a 60-minute walk and reject a 61-minute one? | [Query test](samples/android/catalog-impl/src/test/kotlin/dev/fieldguide/catalog/impl/QueryWalksTeachingTest.kt) | [Query test](samples/flutter/test/query_walks_teaching_test.dart) |
 | **State and failure handling:** what happens when data expires, saving fails, or requests finish out of order? | [Domain and data tests](samples/android/catalog-impl/src/test/kotlin/dev/fieldguide/catalog/impl/DomainDataBehaviorTest.kt) · [Feature tests](samples/android/feature-catalog/src/test/kotlin/dev/fieldguide/feature/catalog/FeatureBehaviorTest.kt) | [Repository tests](samples/flutter/test/repository_test.dart) · [Controller and widget tests](samples/flutter/test/controller_widget_test.dart) |
-| **Visual tests:** do loading, empty, error, light, dark, and large-text states still look right? | [Device captures and assertions](samples/android/app/src/androidTest/kotlin/dev/fieldguide/app/DeviceEvidenceTest.kt) | [Golden image comparisons](samples/flutter/test/visual_golden_test.dart) · [Baselines](samples/flutter/test/goldens/p37) |
+| **Visual tests:** do loading, empty, error, light, dark, and large-text states still look right? | [Automatic Compose preview tests](samples/android/gradle/scripts/screenshot-testing.gradle) · [Device assertions](samples/android/app/src/androidTest/kotlin/dev/fieldguide/app/DeviceEvidenceTest.kt) | [Automatic Widgetbook preview tests](samples/flutter/test/preview_golden_test.dart) · [Screen goldens](samples/flutter/test/visual_golden_test.dart) |
 | **Integration tests:** do the real components work together when external boundaries are controlled? | [In-process journeys](samples/android/feature-catalog/src/test/kotlin/dev/fieldguide/feature/catalog/CatalogIntegrationTest.kt) | [In-process journeys](samples/flutter/test/in_process_integration_test.dart) |
 | **Device journeys:** can someone complete the flow in the running app? | [Compose UI device tests](samples/android/app/src/androidTest/kotlin/dev/fieldguide/app/DeviceEvidenceTest.kt) | [Flutter device tests](samples/flutter/apps/field_guide/integration_test/p37_test.dart) |
 
@@ -69,13 +69,13 @@ Both platforms share [fictional fixtures and 17 acceptance scenarios](samples/co
 
 Use focused tests for the many small variations, then integration and device tests for the connections and important journeys. You can explore a cache boundary without sending every variation through an emulator.
 
-This slide adapts the testing-pyramid idea attributed to Mike Cohn, *Succeeding with Agile* (2009). Its tool names illustrate options across mobile projects. In this repo, Flutter has golden image comparisons; Android has device captures and UI assertions, rather than a Roborazzi or Paparazzi comparison suite.
+This slide adapts the testing-pyramid idea attributed to Mike Cohn, *Succeeding with Agile* (2009). Its tool names illustrate options across mobile projects. In this repo, Android discovers Compose previews and verifies them with Roborazzi. Flutter discovers Widgetbook use cases for component goldens and also compares full-screen golden images. Both platforms include separate device journeys.
 
 ## Signposts and moats
 
 **Signposts explain the way. Moats make a broken rule visible.**
 
-![Signposts and moats: a sign points builders toward laying supports; a crocodile-filled moat blocks the shortcut to a collapsing house. Following the supported path leads to a sound house.](docs/images/signposts-and-moats.png)
+![Signposts and moats: the current presentation scene shows a foundation sign, a moat with crocodiles blocking the shortcut, and builders taking the long path past a reinforced foundation to a finished house.](docs/images/signposts-and-moats.png)
 
 A rule in a README or `AGENTS.md` helps a person or coding agent make a good choice. An executable check gives feedback when the code breaks that rule. Make those checks required in your own CI to turn guidance into a gate.
 
@@ -178,7 +178,7 @@ cd ../..
 python3 samples/harness/check.py --full --output verification/full
 ```
 
-The runner executes contract and source checks, JVM and Flutter tests, Flutter analysis, both debug APK builds, Android instrumentation compilation, resolved dependency checks, and asset checks. Each result includes its command and exit status under `verification/full`, alongside full logs.
+The runner executes contract and source checks, JVM tests and generated Compose preview comparisons, Flutter tests with regenerated Widgetbook discovery, Flutter analysis, both debug APK builds, Android instrumentation compilation, resolved dependency checks, and asset checks. Each result includes its command and exit status under `verification/full`, alongside full logs.
 
 **Device journeys run separately.** Use the commands in the platform READMEs. Building an APK or compiling its tests does not execute them on a device.
 

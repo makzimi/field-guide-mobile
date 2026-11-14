@@ -1,4 +1,5 @@
 plugins {
+    id("io.github.takahirom.roborazzi") version "1.39.0" apply false
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.android) apply false

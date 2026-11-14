@@ -104,6 +104,7 @@ def configured_checks(output: Path) -> dict[str, Check]:
     )
     dart_binary = str(Path(flutter_binary).with_name("dart"))
     flutter_env = {
+        "FIELD_GUIDE_FLUTTER_BIN": flutter_binary,
         "JAVA_HOME": java_home,
         "ANDROID_HOME": android_home,
         "ANDROID_SDK_ROOT": android_home,
@@ -119,11 +120,11 @@ def configured_checks(output: Path) -> dict[str, Check]:
         "contract": Check("contract", [sys.executable, "samples/contract/validate.py", "--report", str(output / "contract-report.txt")], ROOT),
         "source-lint": Check("source-lint", [sys.executable, "samples/harness/lint.py", "--all"], ROOT),
         "flutter-assets": Check("flutter-assets", ["./scripts/prepare-assets.sh"], FLUTTER),
-        "android-jvm": Check("android-jvm", gradle + [":catalog-api:test", ":catalog-impl:test", ":feature-catalog:testDebugUnitTest", ":app:testDebugUnitTest"], ANDROID, android_env),
+        "android-jvm": Check("android-jvm", gradle + [":catalog-api:test", ":catalog-impl:test", ":feature-catalog:verifyRoborazziDebug", ":app:testDebugUnitTest"], ANDROID, android_env),
         "android-build": Check("android-build", gradle + [":app:assembleDebug"], ANDROID, android_env),
         "android-instrumentation-build": Check("android-instrumentation-build", gradle + [":app:assembleDebugAndroidTest"], ANDROID, android_env),
         "android-graph": Check("android-graph", gradle + ["printDirectProjectEdges", "--init-script", "../harness/project-edges.init.gradle"], ANDROID, android_env),
-        "flutter-test": Check("flutter-test", [flutter_binary, "test", "--no-pub", "--reporter", "expanded"], FLUTTER, flutter_env),
+        "flutter-test": Check("flutter-test", ["./scripts/test.sh", "--reporter", "expanded"], FLUTTER, flutter_env),
         "flutter-analyze": Check("flutter-analyze", [flutter_binary, "analyze", "--no-pub"], FLUTTER, flutter_env),
         "flutter-build": Check("flutter-build", [flutter_binary, "build", "apk", "--debug", "--no-pub"], FLUTTER / "apps/field_guide", flutter_env),
         "flutter-graph": Check("flutter-graph", [dart_binary, "pub", "deps", "--json"], FLUTTER, flutter_env),
