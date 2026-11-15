@@ -10,3 +10,20 @@ plugins {
 check(JavaVersion.current() == JavaVersion.VERSION_17) {
     "Field Guide requires JDK 17. Set JAVA_HOME to a JDK 17 installation."
 }
+
+// Convention: a feature-* module depends on *-api modules, never on *-impl.
+tasks.register("checkFeatureBoundaries") {
+    doLast {
+        val features = subprojects.filter { it.name.startsWith("feature-") }
+        check(features.isNotEmpty()) { "No feature-* modules found" }
+
+        features.forEach { feature ->
+            val edges = feature.configurations["implementation"].allDependencies
+                .withType<ProjectDependency>().map { it.path }
+
+            check(edges.none { it.endsWith("-impl") }) {
+                "${feature.path} must depend on -api modules, not on $edges"
+            }
+        }
+    }
+}

@@ -74,4 +74,12 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.6.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    testImplementation("com.lemonappdev:konsist:0.17.3")
+    testImplementation("junit:junit:4.13.2")
+}
+
+tasks.withType<Test>().configureEach {
+    // Konsist reads the sources of every module, so they are test inputs.
+    inputs.files(rootProject.fileTree(".") { include("*/src/main/**/*.kt") })
+    testLogging { events("passed", "failed", "skipped") }
 }

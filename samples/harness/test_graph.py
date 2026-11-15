@@ -52,6 +52,36 @@ class GraphBoundaryTest(unittest.TestCase):
             self.assertIn("feature_catalog", result.stdout)
             self.assertIn("catalog_impl", result.stdout)
 
+    def test_any_new_feature_to_any_new_impl_edge_fails(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            bad = Path(temporary) / "android.log"
+            bad.write_text(ANDROID_GOOD.read_text().replace(
+                ":feature-catalog [debugRuntimeClasspath] -> :catalog-api",
+                ":feature-catalog [debugRuntimeClasspath] -> :catalog-api\n"
+                ":feature-map [debugRuntimeClasspath] -> :routes-api, :routes-impl",
+            ))
+            result = run_graph(bad, FLUTTER_GOOD, ROOT / "samples")
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("feature :feature-map must not depend on impl :routes-impl", result.stdout)
+            self.assertNotIn("routes-api", result.stdout)
+
+    def test_any_new_feature_import_of_any_new_impl_fails(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sources = {
+                "android/routes-impl/src/main/Routes.kt": "package sample.routes.impl\nclass Routes\n",
+                "android/feature-map/src/main/Map.kt": "package sample.feature.map\nimport sample.routes.impl.Routes\n",
+                "flutter/packages/routes_impl/lib/routes.dart": "final routes = 1;\n",
+                "flutter/packages/feature_map/lib/map.dart": "import 'package:routes_impl/routes.dart';\n",
+            }
+            for name, text in sources.items():
+                (root / name).parent.mkdir(parents=True)
+                (root / name).write_text(text)
+            result = run_graph(ANDROID_GOOD, FLUTTER_GOOD, root)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("Android feature feature-map forbidden import sample.routes.impl.Routes", result.stdout)
+            self.assertIn("Flutter feature feature_map forbidden import routes_impl", result.stdout)
+
     def test_empty_source_discovery_fails_closed(self):
         with tempfile.TemporaryDirectory() as temporary:
             result = run_graph(ANDROID_GOOD, FLUTTER_GOOD, Path(temporary))

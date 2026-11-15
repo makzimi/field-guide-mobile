@@ -83,13 +83,14 @@ A rule in a README or `AGENTS.md` helps a person or coding agent make a good cho
 | --- | --- |
 | Write down the architecture and product boundaries | [Agent rules](samples/AGENTS.md) and [shared behavior contract](samples/contract/README.md) |
 | Check source conventions, such as theme colors and logging | [Small Python source checker](samples/harness/lint.py) and [its good/bad fixtures](samples/harness/fixtures) |
+| Stop every feature from depending on any implementation, by naming convention instead of a list of modules | [Konsist import test](samples/android/app/src/test/kotlin/dev/fieldguide/app/ArchitectureTest.kt), [Gradle `checkFeatureBoundaries` task](samples/android/build.gradle.kts) and [Flutter package test](samples/flutter/test/architecture_test.dart) |
 | Verify module boundaries against actual resolved dependencies | [Gradle / Pub graph checker](samples/harness/graph.py) and [negative tests](samples/harness/test_graph.py) |
 | Keep fixtures and generated app assets in sync | [Contract validator](samples/contract/validate.py) and [asset checker](samples/flutter/scripts/check-generated-assets.py) |
 | Run checks consistently and keep commands, exit statuses, and logs | [Local check runner](samples/harness/check.py) and [its selection tests](samples/harness/test_check.py) |
 
 ![Checks pyramid from New Bottlenecks: static analysis at the base, architecture tests in the middle, and the module or package dependency graph at the top. Checks expand from local code to the whole project.](docs/images/checks-pyramid.png)
 
-The checks pyramid is a teaching model from **New Bottlenecks: AI in Mobile Development**. It complements behavior tests by checking how code is organized. The slide shows a wider toolkit; this sample uses custom Python source and dependency checks plus the Dart analyzer. The included runner executes locally; CI gates are yours to configure.
+The checks pyramid is a teaching model from **New Bottlenecks: AI in Mobile Development**. It complements behavior tests by checking how code is organized. The slide shows a wider toolkit; this sample uses Konsist, a Gradle task and a Flutter test for the feature boundary, custom Python source and dependency checks, and the Dart analyzer. The included runner executes locally; CI gates are yours to configure.
 
 ## Try breaking something
 
