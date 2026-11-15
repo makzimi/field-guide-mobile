@@ -22,7 +22,7 @@ tasks.register("checkFeatureBoundaries") {
                 .withType<ProjectDependency>().map { it.path }
 
             check(edges.none { it.endsWith("-impl") }) {
-                "${feature.path} must depend on -api modules, not on $edges"
+                "${feature.path} must depend on -api modules, never on -impl"
             }
         }
     }
